@@ -17,6 +17,12 @@ def solve(G, s):
     # TODO: your code here!
     pass
 
+    # Idea (Deepak): Something like a greedy solution, where we start by opening n/2 breakout rooms
+    # and greedily assign student pairs to maximize happiness, and if a room exceeds the
+    # stress_budget per room, we reduce the number of rooms (which increases stress/k)
+    # and continue assigning student pairs greedily by maximum happiness to the room with
+    # the lowest stress level
+
 
 # Here's an example of how to run your solver.
 
