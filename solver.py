@@ -4,6 +4,96 @@ from utils import is_valid_solution, calculate_happiness
 import sys
 
 
+def brute_solve(G, s):
+    """
+    Brute force solves G to find most optimal solution
+    """
+
+    all_possible_combinations = {} # maps a particular combination to happiness
+    num_open_rooms = 1
+    students = list(G.nodes)
+
+
+    while (num_open_rooms <= len(students)):
+        rooms = []
+        for _ in range(len(students)/num_open_rooms):
+            rooms.append([])
+        all_possible_combinations = recursive_fill_rooms(rooms, students, s, all_possible_combinations)
+
+    # Find max Happiness and return
+    h = 0
+    room = None
+    for combo in all_possible_combinations:
+        if (all_possible_combinations[combo] > h):
+            room = combo
+            h = all_possible_combinations[combo]
+    return room, h
+
+
+def recursive_fill_rooms(rooms, student_lst, s_max, all_possible_combinations):
+    #base case of if student_lst is 0 or if rooms is empty or things
+    if (len(rooms) <= 0 || len(student_lst) <= 0):
+        return all_possible_combinations
+
+    for i in range(len(student_lst)):
+        for j in range(len(rooms)):
+            student = student_lst.pop(j)
+            rooms[i] += student
+            all_possible_combinations = recursive_fill_rooms(rooms, student_lst)
+            for room in rooms:
+                h, s = happy_and_stress_of_student_subset(G, room)
+            if (s <= s_max/len(rooms)):
+                all_possible_combinations[rooms] = h
+            student_lst.insert(j, student)
+
+
+    return all_possible_combinations
+
+
+def happy_and_stress_of_student_subset(G, student_lst):
+    happy = 0;
+    stress = 0;
+    for i in range(len(student_lst)-1):
+        for j in range(len(student_lst)):
+            happy += G[student_lst[i]][student_lst[j]]["happiness"]
+            stress += G[student_lst[i]][student_lst[j]]["stress"]
+
+    return happy, stress
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 def solve(G, s):
     """
     Args:
