@@ -4,9 +4,9 @@ from utils import is_valid_solution, calculate_happiness
 import sys
 
 
-def make_an_input(n, path):
+def make_input_one(n, path):
     """
-    Auto generates a input file based on number of  students
+    Auto generates input #1 (see below notes) based on number of students
     Args:
         n: number of students
         path: str, a filepath to create file
@@ -46,6 +46,7 @@ def make_an_input(n, path):
     0: 0, 3
 
 
+    ========== INPUT #1 ==========
     #### INPUT TO CONSIDER ####
     6 students
     s_max = 9 (they key is to make s_max/k = max(s) + 1 i.e. constrain s.t. size(room) <= 2 for all rooms)
@@ -83,6 +84,8 @@ def make_an_input(n, path):
 
 
 
+
+    ========== INPUT #2 ==========
     ### Doesn't really feel like a hard input ###
     6 students
     s_max = 10
@@ -120,6 +123,7 @@ def make_an_input(n, path):
 
 
 
+    ========== INPUT #3 ==========
     ### Might trick algo that tries to sort by stress level instead of happiness ###
     6 students
     s_max = 22 (possible idea: what if s_max = 70?)
@@ -164,6 +168,7 @@ def make_an_input(n, path):
 
 
 
+    ========== INPUT #4 ==========
     #### INPUT TO CONSIDER ####
     (Note: Probably hard to replicate for 10 people, probably requires more trial and error to find optimal solution that would trick algo)
     6 students
@@ -205,6 +210,7 @@ def make_an_input(n, path):
 
 
 
+    ========== INPUT #5 ==========
     ### Could be used for 20, might be a little hard to replicate ###
     (s = h-c where 0 ≤ c ≤ 100, s_max constrains breakout rooms to 3 people/room)
     6 students
@@ -261,6 +267,7 @@ def make_an_input(n, path):
 
 
 
+    ========== INPUT #6 ==========
     (another input: h/s is equal for everyone)
 
 
@@ -286,4 +293,26 @@ def make_an_input(n, path):
 
 
 
+    """
+
+
+
+
+
+
+
+
+
+
+
+
+def brute_force_solution(G, s):
+    """
+    Brute force solution to rest optimality of our input/output files
+    Args:
+        G: networkx.Graph
+        s: stress_budget
+    Returns:
+        D: Dictionary mapping for student to breakout room r e.g. {0:2, 1:0, 2:1, 3:2}
+        k: Number of breakout rooms
     """
