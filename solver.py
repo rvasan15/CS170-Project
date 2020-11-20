@@ -23,6 +23,58 @@ def solve(G, s):
     # and continue assigning student pairs greedily by maximum happiness to the room with
     # the lowest stress level
 
+    """
+    Phase 1 thoughts:
+
+    Possible Solutions
+     - Subrtact stress from happiness and then apply the "enemies" solution (hw problem)
+       while keeping stress levels below s_max/k
+     - Randomly greedy: choose student @ random, assign, choose another student @ random,
+       assign to any of the existing breakout rooms s.t. s_max/k isn't exceeded, or if
+       it is exceeded no matter what, then put student in own breakotu room, recalculate
+       s_max/k, remove any students from (other) breakout rooms that exceed this new value
+       and reassign them, repeat until all students assigned
+     - Bellman Fords/DFS/BFS/other graph solutions?
+     - DP: Max happiness with n-1 students or all students except student i (knapsack?)
+     - Residual Graph/Flow algorithm (Max Flow problem?) (Probably not)
+     - Set Cover/NP Problem? Search Problem?
+
+
+    Pseudocode for greedy solution:
+
+    num_filled_rooms = 0
+    student_stack = {}
+    num_unassigned_students = [i for i in range(n)]
+    dictionary = {[i : empty set] for i in range(n)}
+
+
+    while (len(num_unassigned_students) > 0):
+        student_to_assign = pick_random_student()
+        current_max_happiness = -infinity
+        for breakout_room in range(0, num_filled_rooms):
+            add student_to_assign to breakout_room
+            if (stress(breakout_room) > s_max/num_filled_rooms):
+                continue;
+
+            current_max_happiness = max(happiness(breakout_room), current_max_happiness) #also keeep track of which room creates max happiness
+
+        if (current_max_happiness = -inifinty):
+            num_filled_rooms += 1
+            for breakout_room in range(0, num_filled_rooms):
+                while (stress(breakout_room) > s_max/num_filled_rooms):
+                    current_min_stress = stress(breakout_room)
+                    for student in breakout_room:
+                        remove student from breakout_room
+                        current_min_stress = min(current_min_stress, stress(breakout_room)) # see line 59 (current_max_happiness)
+                    remove student that minimized stress of breakout_room
+
+
+
+
+
+
+    """
+
 
 # Here's an example of how to run your solver.
 
