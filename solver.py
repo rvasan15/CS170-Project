@@ -4,6 +4,8 @@ from utils import is_valid_solution, calculate_happiness
 import sys
 
 
+
+
 def brute_solve(G, s):
     """
     Brute force solves G to find most optimal solution
@@ -16,9 +18,10 @@ def brute_solve(G, s):
 
     while (num_open_rooms <= len(students)):
         rooms = []
-        for _ in range(len(students)/num_open_rooms):
+        for _ in range(num_open_rooms):
             rooms.append([])
-        all_possible_combinations = recursive_fill_rooms(rooms, students, s, all_possible_combinations)
+        all_possible_combinations = recursive_fill_rooms(rooms, students, s, all_possible_combinations, G)
+        num_open_rooms += 1
 
     # Find max Happiness and return
     h = 0
@@ -30,16 +33,16 @@ def brute_solve(G, s):
     return room, h
 
 
-def recursive_fill_rooms(rooms, student_lst, s_max, all_possible_combinations):
+def recursive_fill_rooms(rooms, student_lst, s_max, all_possible_combinations, G):
     #base case of if student_lst is 0 or if rooms is empty or things
-    if (len(rooms) <= 0 || len(student_lst) <= 0):
+    if (len(rooms) <= 0 or len(student_lst) <= 0):
         return all_possible_combinations
 
     for i in range(len(student_lst)):
         for j in range(len(rooms)):
             student = student_lst.pop(j)
-            rooms[i] += student
-            all_possible_combinations = recursive_fill_rooms(rooms, student_lst)
+            rooms[i] += [student]
+            all_possible_combinations = recursive_fill_rooms(rooms, student_lst, s_max, all_possible_combinations, G)
             for room in rooms:
                 h, s = happy_and_stress_of_student_subset(G, room)
             if (s <= s_max/len(rooms)):
@@ -54,7 +57,10 @@ def happy_and_stress_of_student_subset(G, student_lst):
     happy = 0;
     stress = 0;
     for i in range(len(student_lst)-1):
-        for j in range(len(student_lst)):
+        for j in range(i+1, len(student_lst)):
+            #print(student_lst[i])
+            #print(student_lst[j])
+            #print(G[student_lst[i]][student_lst[j]])
             happy += G[student_lst[i]][student_lst[j]]["happiness"]
             stress += G[student_lst[i]][student_lst[j]]["stress"]
 
@@ -64,6 +70,110 @@ def happy_and_stress_of_student_subset(G, student_lst):
 
 
 
+def brute_solve2(G, s):
+    """
+    Brute force solves G to find most optimal solution
+    """
+
+    all_possible_combinations = {} # maps a particular combination to happiness
+    num_open_rooms = 1
+    students = list(G.nodes)
+    lst_combos = []
+    h = -1
+    best_rooms = []
+
+
+    while (num_open_rooms <= len(students)):
+        rooms = []
+        for _ in range(num_open_rooms):
+            rooms.append([])
+
+
+
+        assigned_students = []
+
+        room_temp, h = recursive_fill_rooms2(rooms, students, all_possible_combinations, G, s, best_rooms, h, assigned_students)
+        #best_rooms = room_temp.copy()
+        best_rooms = []
+        for i in range(len(room_temp)):
+            best_rooms += [room_temp[i]].copy()
+        #lst_combos += lst
+        #all_possible_combinations.update(dct)
+
+
+        #all_possible_combinations = recursive_fill_rooms(rooms, students, s, all_possible_combinations, G)
+        num_open_rooms += 1
+
+    """
+
+    for i in range(len(lst_combos)):
+        if (all_possible_combinations[i] > h):
+            room = lst_combos[i]
+            h = all_possible_combinations[i]
+    """
+    return best_rooms, h
+
+
+
+def recursive_fill_rooms2(rooms, students, all_possible_combinations, G, s, best_rooms, best_h, assigned_students):
+
+
+    print()
+    print(rooms)
+    print(students)
+    print(best_rooms)
+    print(best_h)
+    print()
+
+
+    if (len(students) <= 0):
+        print("here")
+        h = 0
+        s_room = 0
+        for room in rooms:
+
+            temp_h, temp_s = happy_and_stress_of_student_subset(G, room)
+            h += temp_h
+            s_room = max(temp_s, s_room)
+        if (s_room <= s):
+            if (h > best_h):
+                print("here2")
+                best_rooms = []
+                room_temp = room.copy()
+                for i in range(len(room_temp)):
+                    best_rooms += [room_temp[i]].copy()
+                best_h = h
+
+        #print(lst_combos)
+        #for i in range(len(best_rooms)):
+            #best_rooms[i] = best_rooms[i].copy()
+        return best_rooms.copy(), best_h
+
+    start = -1
+    if (assigned_students == []):
+        start = 0
+    else:
+        start = max(assigned_students) + 1
+
+    temp_student = students.copy()
+
+    for student in temp_student:
+        for room in rooms:
+            students.remove(student)
+            room += [student]
+            #assigned_students += [student]
+
+            room_temp, best_h = recursive_fill_rooms2(rooms, students, all_possible_combinations, G, s, best_rooms, best_h, assigned_students)
+            #best_rooms = room_temp.copy()
+            best_rooms = []
+            for i in range(len(room_temp)):
+                best_rooms += [room_temp[i]].copy()
+            #lst_combos += lst
+            #all_possible_combinations.update(dct)
+            room.pop()
+            #assigned_students.pop()
+            students.append(student)
+    return best_rooms.copy(), best_h
 
 
 
@@ -71,9 +181,11 @@ def happy_and_stress_of_student_subset(G, student_lst):
 
 
 
-
-
-
+"""
+import solver, parse
+G, s = parse.read_input_file("4.in")
+room, h = solver.brute_solve2(G, s)
+"""
 
 
 

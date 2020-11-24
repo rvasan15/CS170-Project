@@ -39,9 +39,10 @@ def make_input_one(n, path):
     G = nx.Graph()
     for i in range(n-1):
         for j in range(i+1, n):
-            G.add_edge(i, j, {"happiness": random.randint(1, 5), "stress": 2})
+            rin = random.randint(1, 5)
+            G.add_edges_from([(i, j, {"happiness": rin, "stress": 2})])
 
-    write_input_file(G, s_max, path)
+    parse.write_input_file(G, s_max, path)
 
 
 def make_input_five(n, path):
