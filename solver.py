@@ -94,9 +94,13 @@ def brute_solve2(G, s):
 
         room_temp, h = recursive_fill_rooms2(rooms, students, all_possible_combinations, G, s, best_rooms, h, assigned_students)
         #best_rooms = room_temp.copy()
+
         best_rooms = []
         for i in range(len(room_temp)):
             best_rooms += [room_temp[i]].copy()
+
+        print("here3")
+        print(best_rooms)
         #lst_combos += lst
         #all_possible_combinations.update(dct)
 
@@ -117,32 +121,40 @@ def brute_solve2(G, s):
 
 def recursive_fill_rooms2(rooms, students, all_possible_combinations, G, s, best_rooms, best_h, assigned_students):
 
-
+    """
     print()
     print(rooms)
     print(students)
     print(best_rooms)
     print(best_h)
     print()
+    """
+
+    h = 0
+    s_room = 0
+    for room in rooms:
+
+        temp_h, temp_s = happy_and_stress_of_student_subset(G, room)
+        h += temp_h
+        s_room = max(temp_s, s_room)
+    if (s_room > s/len(rooms)):
+        return best_rooms, best_h
 
 
     if (len(students) <= 0):
-        print("here")
-        h = 0
-        s_room = 0
-        for room in rooms:
+        #print("here")
 
-            temp_h, temp_s = happy_and_stress_of_student_subset(G, room)
-            h += temp_h
-            s_room = max(temp_s, s_room)
-        if (s_room <= s):
+        if (s_room <= s/len(rooms)):
             if (h > best_h):
-                print("here2")
+                #print("here2")
                 best_rooms = []
-                room_temp = room.copy()
-                for i in range(len(room_temp)):
-                    best_rooms += [room_temp[i]].copy()
+                room_temp = rooms.copy()
+                #print(room_temp)
+                for i in range(len(rooms)):
+                    best_rooms += [rooms[i].copy()]
+                #print(best_rooms)
                 best_h = h
+                #print(best_h)
 
         #print(lst_combos)
         #for i in range(len(best_rooms)):
@@ -157,22 +169,24 @@ def recursive_fill_rooms2(rooms, students, all_possible_combinations, G, s, best
 
     temp_student = students.copy()
 
-    for student in temp_student:
-        for room in rooms:
-            students.remove(student)
-            room += [student]
-            #assigned_students += [student]
+    student = min(students)
 
-            room_temp, best_h = recursive_fill_rooms2(rooms, students, all_possible_combinations, G, s, best_rooms, best_h, assigned_students)
-            #best_rooms = room_temp.copy()
-            best_rooms = []
-            for i in range(len(room_temp)):
-                best_rooms += [room_temp[i]].copy()
-            #lst_combos += lst
-            #all_possible_combinations.update(dct)
-            room.pop()
-            #assigned_students.pop()
-            students.append(student)
+    #for student in temp_student:
+    for room in rooms:
+        students.remove(student)
+        room += [student]
+        #assigned_students += [student]
+
+        room_temp, best_h = recursive_fill_rooms2(rooms, students, all_possible_combinations, G, s, best_rooms, best_h, assigned_students)
+        #best_rooms = room_temp.copy()
+        best_rooms = []
+        for i in range(len(room_temp)):
+            best_rooms += [room_temp[i].copy()]
+        #lst_combos += lst
+        #all_possible_combinations.update(dct)
+        room.pop()
+        #assigned_students.pop()
+        students.append(student)
     return best_rooms.copy(), best_h
 
 
