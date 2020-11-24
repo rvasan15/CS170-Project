@@ -72,18 +72,20 @@ def happy_and_stress_of_student_subset(G, student_lst):
 
 def brute_solve2(G, s):
     """
-    Brute force solves G to find most optimal solution
+    Brute force solves G to find most optimal solution (SPECIFICALLY WITH ON input #1 types)
+    To modify code to brute force all possible inputs, change lines 87 (first while loop)
+    and 111 (last line of while loop that changes num_open_rooms)
     """
 
     all_possible_combinations = {} # maps a particular combination to happiness
-    num_open_rooms = 1
     students = list(G.nodes)
+    num_open_rooms = len(students)
     lst_combos = []
     h = -1
     best_rooms = []
 
 
-    while (num_open_rooms <= len(students)):
+    while (num_open_rooms >= len(students)/2):
         rooms = []
         for _ in range(num_open_rooms):
             rooms.append([])
@@ -106,7 +108,7 @@ def brute_solve2(G, s):
 
 
         #all_possible_combinations = recursive_fill_rooms(rooms, students, s, all_possible_combinations, G)
-        num_open_rooms += 1
+        num_open_rooms = int(num_open_rooms/2)
 
     """
 
