@@ -1,7 +1,7 @@
 import networkx as nx
 from parse import read_input_file, write_output_file
 from utils import is_valid_solution, calculate_happiness
-import sys
+import random, sys, math
 
 
 
@@ -56,6 +56,8 @@ def recursive_fill_rooms(rooms, student_lst, s_max, all_possible_combinations, G
 def happy_and_stress_of_student_subset(G, student_lst):
     happy = 0;
     stress = 0;
+    if (len(student_lst) <= 1):
+        return happy, stress
     for i in range(len(student_lst)-1):
         for j in range(i+1, len(student_lst)):
             #print(student_lst[i])
@@ -79,13 +81,13 @@ def brute_solve2(G, s):
 
     all_possible_combinations = {} # maps a particular combination to happiness
     students = list(G.nodes)
-    num_open_rooms = len(students)
+    num_open_rooms = int(ceil(len(students)/2))
     lst_combos = []
     h = -1
     best_rooms = []
 
 
-    while (num_open_rooms >= len(students)/2):
+    while (num_open_rooms >= int(ceil(len(students)/2))):
         rooms = []
         for _ in range(num_open_rooms):
             rooms.append([])
@@ -108,7 +110,7 @@ def brute_solve2(G, s):
 
 
         #all_possible_combinations = recursive_fill_rooms(rooms, students, s, all_possible_combinations, G)
-        num_open_rooms = int(num_open_rooms/2)
+        num_open_rooms = int(ceil(num_open_rooms/2))
 
     """
 
@@ -197,11 +199,166 @@ def recursive_fill_rooms2(rooms, students, all_possible_combinations, G, s, best
 
 
 
+def gamble_solve(G, s, num_open_rooms, reps=100, limit = -1):
+    """
+    Gambles by randomly assigning students to rooms and checking optimality and stress levels
+    Works specifically for input #1 type
+     - can be modified by changin num_open_rooms to randint
+     - can be modified adding checks before h > best_h to check stress_max val per room
+    """
+
+    students = list(G.nodes)
+    #num_open_rooms = int(math.ceil(len(students)/2))
+    best_h = -1
+    best_rooms = []
+
+
+
+    for _ in range(reps):
+        rooms = []
+        for _ in range(num_open_rooms):
+            rooms.append([])
+        temp_students = students.copy()
+
+
+
+        rooms = random_assign(temp_students, rooms, limit)
+
+        h = 0
+        s_room = 0
+        for room in rooms:
+
+            temp_h, temp_s = happy_and_stress_of_student_subset(G, room)
+            h += temp_h
+            s_room = max(temp_s, s_room)
+        if ((s_room <= s/len(rooms)) and (h > best_h)):
+            best_rooms = []
+            room_temp = rooms.copy()
+            for i in range(len(rooms)):
+                best_rooms += [rooms[i].copy()]
+            best_h = h
+
+        return best_rooms.copy(), best_h
+
+
+
+def random_assign(students, rooms, limit_per_room = -1):
+
+    temp_students = students.copy()
+
+    if (limit_per_room >= 0):
+        for room in rooms:
+            temp_room = random.sample(temp_students, limit_per_room).copy() #look at this line for copy issue
+            for student in temp_room:
+                room += [student]
+            for student in temp_room:
+                temp_students.remove(student)
+    else:
+        while (len(temp_students) > 0):
+            rin = random.randint(0, len(rooms)-1)
+            student = random.sample(temp_students, 1)
+            rooms[rin] += student
+            temp_students.remove(student[0])
+
+    return rooms
+
+
+
+
+
+def gamble_solve_runner(G, s, num_open_rooms, reps=10, reps_to_run=100, limit = -1):
+    best_room = []
+    h = -1
+    for _ in range(reps_to_run):
+        room, hap = gamble_solve(G, s, num_open_rooms, reps, limit=limit)
+        if (hap > h):
+            best_room = []
+            for i in range(len(room)):
+                best_room += [room[i].copy()]
+            h = hap
+    return best_room, h
+
+
+
+#Todo: Make solver for test20.in (i.e. input #5) that like "splits" students into high
+#stress and high happiness groups, puts high stress students in seperate rooms (and opens
+#as many necessary rooms to put high stress students in their own rooms) then assigns
+#high happiness students s.t. i is put with j iff j < i, run all possible permutations, calc
+def solve_input_five(G, s):
+    students = list(G.nodes)
+    high_stress_students = [2*i+1 for i in range(len(students)/2)]
+    high_happy_students = [2*i for i in range(len(students)/2)]
+
+    best_h = -1
+    best_rooms = []
+
+    rooms = []
+    for _ in range(len(high_stress_students)):
+        rooms.append([])
+
+    for _ in range(len(high_stress_students)):
+        rooms[i] += [high_stress_students[i]]
+
+
+
+    temp_students = high_happy_students.copy()
+
+#    0123456789
+#    13579
+#    i
+#    2i+1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def make_output_from_list(lst, path):
+    dict = {}
+    for i in range(len(lst)):
+        for item in lst[i]:
+            dict[item] = i
+    dict2 = {}
+    for i in sorted(dict.keys()):
+        dict2[i] = dict[i]
+    write_output_file(dict2, path)
+
+
+
+
+
+
+
+
+
+#TODO: Also write a psuedo greedy solution to optimize for happiness at least for 50
+
+
 """
 import solver, parse
-G, s = parse.read_input_file("4.in")
-room, h = solver.brute_solve2(G, s)
+G, s = parse.read_input_file("test20.in")
+room, h = solver.gamble_solve_runner(G, s, 10)
+
+solver.make_output_from_list(room, "test20.out")
 """
+
 
 
 

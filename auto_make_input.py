@@ -60,20 +60,26 @@ def make_input_five(n, path):
 
     #G = nx.Graph()
 
-    s_max = 35
+    s_max = 7*n/2
     print("n = " + str(n))
     print("s_max = " + str(s_max))
     print()
     print("1 2 h s")
     print()
 
-
+    G = nx.Graph()
     for i in range(n-1):
         for j in range(i+1, n):
             if (i % 2 == 0):
-                print(i, j, 20-(i+1), i + 1)
+                #print(i, j, , )
+                G.add_edges_from([(i, j, {"happiness": (n*2)-(i+1), "stress": (i + 1)})])
             else:
-                print(i, j, i+1, 20-(i + 1))
+                #print(i, j, , )
+                G.add_edges_from([(i, j, {"happiness": i+1, "stress": (n*2)-(i + 1)})])
+
+
+
+    parse.write_input_file(G, s_max, path)
 
 
 
