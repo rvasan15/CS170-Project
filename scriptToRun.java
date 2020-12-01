@@ -8,9 +8,8 @@ public class scriptToRun {
         //args should be: inputs, outputs, [name], [start_filenum_range], [end_filenum_range]
         File input_dir = new File(args[0]);
         File output_dir = new File(args[1]);
-        String username = args[2];
-        int startRange = Integer.parseInt(args[3]);
-        int endRange = Integer.parseInt(args[4]);
+        int startRange = Integer.parseInt(args[2]);
+        int endRange = Integer.parseInt(args[3]);
 //        System.out.println(input_dir.toPath());
 //        System.out.println(output_dir);
 //        System.out.println(username);
@@ -49,7 +48,7 @@ public class scriptToRun {
                 }
                 int filenum = Integer.parseInt(str);
 
-                if (username.equals("deepak") && (filenum <= endRange) && (filenum >= startRange)) {
+                if ((filenum <= endRange) && (filenum >= startRange)) {
                     //System.out.println("here2");
                     pritArgs[0] = child.toString();
                     pritArgs[1] = output_dir.toString() + "/" + filename + ".out";
