@@ -2,7 +2,22 @@ import networkx as nx
 from parse import read_input_file, write_output_file
 from utils import is_valid_solution, calculate_happiness
 import random, sys, math
+import os
+import pritDP.java
 
+def create_outputs(input_path_dir, output_path_dir, username):
+
+    input_directory = os.fsencode(input_path_dir)
+
+    for file in os.listdir(input_directory):
+         filename = os.fsdecode(file)
+         if filename.startswith("large"):
+            continue
+         if filename.endswith(".asm") or filename.endswith(".py"):
+             # print(os.path.join(directory, filename))
+             continue
+         else:
+             continue
 
 
 
