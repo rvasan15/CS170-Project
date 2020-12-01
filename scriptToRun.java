@@ -31,7 +31,7 @@ public class scriptToRun {
                 }
                 //System.out.println("here1");
 
-                if (!filename.substring(filename.length()-3).equals(".in")) {
+                if (!filename.substring(filename.length()-3).equals(".in") || filename.substring(0, 5).equals("large")) {
                     //System.out.println(filename);
                     continue;
                 }
