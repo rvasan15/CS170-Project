@@ -234,8 +234,8 @@ def gamble_solve(G, s, num_open_rooms, reps=100, limit = -1):
     best_rooms = []
 
 
-    _ = 0
-    while _ < reps:
+    count = 0
+    while (count < reps):
         rooms = []
         for _ in range(num_open_rooms):
             rooms.append([])
@@ -258,9 +258,9 @@ def gamble_solve(G, s, num_open_rooms, reps=100, limit = -1):
             for i in range(len(rooms)):
                 best_rooms += [rooms[i].copy()]
             best_h = h
-        if (not valid):
-            _ = _ - 1
-        _ = _ + 1
+        elif (not valid):
+            count = count - 1
+        count = count + 1
     return best_rooms.copy(), best_h
 
 
