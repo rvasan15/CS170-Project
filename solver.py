@@ -1,10 +1,12 @@
 import networkx as nx
 from parse import read_input_file, write_output_file
-from utils import is_valid_solution, calculate_happiness
+import utils
 import random, sys, math
 import os
-import pritDP.java
+#import pritDP.java
 
+
+"""
 def create_outputs(input_path_dir, output_path_dir, username):
 
     input_directory = os.fsencode(input_path_dir)
@@ -18,6 +20,7 @@ def create_outputs(input_path_dir, output_path_dir, username):
              continue
          else:
              continue
+"""
 
 
 
@@ -220,6 +223,9 @@ def gamble_solve(G, s, num_open_rooms, reps=100, limit = -1):
     Works specifically for input #1 type
      - can be modified by changin num_open_rooms to randint
      - can be modified adding checks before h > best_h to check stress_max val per room
+    ToDo:
+     - Refactor to use methods in utils.py
+     - Make sure truly gamble solution
     """
 
     students = list(G.nodes)
@@ -228,8 +234,8 @@ def gamble_solve(G, s, num_open_rooms, reps=100, limit = -1):
     best_rooms = []
 
 
-
-    for _ in range(reps):
+    _ = 0
+    while _ < reps:
         rooms = []
         for _ in range(num_open_rooms):
             rooms.append([])
@@ -239,21 +245,23 @@ def gamble_solve(G, s, num_open_rooms, reps=100, limit = -1):
 
         rooms = random_assign(temp_students, rooms, limit)
 
-        h = 0
-        s_room = 0
-        for room in rooms:
+        temp_d = utils.convert_list_to_dictionary(rooms)
+        dict = utils.convert_dictionary(temp_d)
 
-            temp_h, temp_s = happy_and_stress_of_student_subset(G, room)
-            h += temp_h
-            s_room = max(temp_s, s_room)
-        if ((s_room <= s/len(rooms)) and (h > best_h)):
+        valid = utils.is_valid_solution(dict, G, s, num_open_rooms)
+
+        h = utils.calculate_happiness(dict, G)
+
+        if ((valid) and (h > best_h)):
             best_rooms = []
             room_temp = rooms.copy()
             for i in range(len(rooms)):
                 best_rooms += [rooms[i].copy()]
             best_h = h
-
-        return best_rooms.copy(), best_h
+        if (not valid):
+            _ = _ - 1
+        _ = _ + 1
+    return best_rooms.copy(), best_h
 
 
 
@@ -281,16 +289,26 @@ def random_assign(students, rooms, limit_per_room = -1):
 
 
 
-def gamble_solve_runner(G, s, num_open_rooms, reps=10, reps_to_run=100, limit = -1):
+def gamble_solve_runner(G, s, num_open_rooms = -1, reps=10, reps_to_run=100, limit = -1):
     best_room = []
     h = -1
-    for _ in range(reps_to_run):
-        room, hap = gamble_solve(G, s, num_open_rooms, reps, limit=limit)
-        if (hap > h):
-            best_room = []
-            for i in range(len(room)):
-                best_room += [room[i].copy()]
-            h = hap
+    if (num_open_rooms <= 0):
+        for _ in range(reps_to_run):
+            for i in range(1, len(list(G.nodes))+1):
+                room, hap = gamble_solve(G, s, i, reps, limit=limit)
+                if (hap > h):
+                    best_room = []
+                    for i in range(len(room)):
+                        best_room += [room[i].copy()]
+                    h = hap
+    else:
+        for _ in range(reps_to_run):
+            room, hap = gamble_solve(G, s, num_open_rooms, reps, limit=limit)
+            if (hap > h):
+                best_room = []
+                for i in range(len(room)):
+                    best_room += [room[i].copy()]
+                h = hap
     return best_room, h
 
 
@@ -325,6 +343,25 @@ def solve_input_five(G, s):
 
 
 
+def greedy_solve_1(G, s):
+    """
+    Probably open 1 room, add as many possible students w/o exceeding stress level, then
+    if s_level exceeded, remove all students, open 2 rooms, repeat
+     - Remember to sort students (or sort edgelist or somt) and break ties by happiness
+    """
+
+
+
+
+
+
+def greedy_solve_2(G, s):
+    """
+    Probably open 1 room, add as many possible students w/o exceeding stress level, then
+    if s_level exceeded, remove students that cause most stress, open 2 room, repeat
+     - Remember to sort students (or sort edgelist or somt) and break ties by happiness
+     - Will probably need algo to determine which student causes most stress in given room
+    """
 
 
 
@@ -342,18 +379,6 @@ def solve_input_five(G, s):
 
 
 
-
-
-
-def make_output_from_list(lst, path):
-    dict = {}
-    for i in range(len(lst)):
-        for item in lst[i]:
-            dict[item] = i
-    dict2 = {}
-    for i in sorted(dict.keys()):
-        dict2[i] = dict[i]
-    write_output_file(dict2, path)
 
 
 

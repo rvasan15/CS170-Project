@@ -61,6 +61,38 @@ def convert_dictionary(room_to_student):
             d[student] = room
     return d
 
+def convert_list_to_dictionary(list_of_rooms):
+    """
+    Converts list of rooms and students to the dictionary mapping room_to_student
+    Args:
+        list_of_rooms: List of lists (i.e. rooms) that contain numbers (i.e. students)
+
+    Returns:
+        room_to_student: Dictionary of room to a list of students
+    e.g [[1, 2, 3], [4, 5]] ==> {0: [1,2,3], 1: [4, 5]}
+    """
+    d = {}
+    for i in range(len(list_of_rooms)):
+        d[i] = list_of_rooms[i].copy()
+    return d
+
+def make_output_from_list(lst, path):
+    """
+    Converts the list of students in rooms to a valid return of the solver and writes to
+    output file
+    Args:
+        lst: List of lists (i.e. rooms) that contain numbers (i.e. students)
+        path: filepath to output file to write dictionary output
+    """
+    dict = {}
+    for i in range(len(lst)):
+        for item in lst[i]:
+            dict[item] = i
+    dict2 = {}
+    for i in sorted(dict.keys()):
+        dict2[i] = dict[i]
+    write_output_file(dict2, path)
+
 def calculate_stress_for_room(arr, G):
     """
     Given an array of students in to be placed in a room, calculate stress for the room.
