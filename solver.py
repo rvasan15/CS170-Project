@@ -680,7 +680,10 @@ solver.make_output_from_list(room, "test20.out")
 
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 16e82b66d86081154ca2d844e2de7f47d9a2b72d
 
 def solve(G, s):
     """
