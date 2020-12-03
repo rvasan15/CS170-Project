@@ -474,7 +474,7 @@ def greedy_solve_1(G, s):
                         min_stress0 = temp_stress0
                         min_room0 = room
 
-                    room_to_students[room].remove(student1)
+                    room_to_students[room].remove(student0)
 
                 if (min_room0 >= 0):
                     room_to_students[min_room0] += [student0]
