@@ -1,9 +1,12 @@
 import networkx as nx
 from parse import read_input_file, write_output_file
-<<<<<<< HEAD
 import utils
 import random, sys, math
 import os
+from utils import is_valid_solution, calculate_happiness
+import sys
+from os.path import basename, normpath
+import glob
 #import pritDP.java
 
 
@@ -677,12 +680,6 @@ solver.make_output_from_list(room, "test20.out")
 
 
 
-=======
-from utils import is_valid_solution, calculate_happiness
-import sys
-from os.path import basename, normpath
-import glob
->>>>>>> 9ce81000014df4b496879463e0716e21d3c337bc
 
 
 def solve(G, s):
