@@ -726,7 +726,7 @@ def greedy_solve_2(G, s):
 
             student_pair = student_pair[0]
             """
-            student_pair = happy_edgeList.pop(random.randint(0, 4))
+            student_pair = happy_edgeList.pop(random.randint(0, 4)) # ToDo: Maybe increase this value to 5 - 10?
             #print("num assigend students: ", len(assigned_students))
             #print("student_pair: ", student_pair)
             #print("happy val: ", G_copy.edges[student_pair]["happiness"])
@@ -937,14 +937,14 @@ def greedy_solve_2(G, s):
 
         #print("here3")
 
-        valid_sol = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+        valid_sol = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, len(room_to_students))
         happy = utils.calculate_happiness(utils.convert_dictionary(room_to_students), G)
         if (len(assigned_students) < len(list(G.nodes))):
             #print(room_to_students)
             happy = float('-inf')
 
         #print("room_to_students: ", room_to_students)
-        print("happy for ", len(room_to_students), " rooms: ", happy)
+
 
         if (happy > max_happy and valid_sol):
             max_happy = happy
@@ -953,6 +953,7 @@ def greedy_solve_2(G, s):
                 room_to_students_to_return[room] = room_to_students[room].copy()
 
     #print("here4")
+    print("happy for ", len(room_to_students), " rooms: ", max_happy)
     return room_to_students_to_return
 
 
