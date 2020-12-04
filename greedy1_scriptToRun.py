@@ -15,7 +15,7 @@ def greedy1_script():
         G, s = parse.read_input_file("inputs/large-" + str(i) + ".in")
 
         maxHapp = float("-inf")
-        for _ in range(1, 25):
+        for _ in range(1, 101):
             rooms_to_students = solver.greedy_solve_2(G, s)
             D = utils.convert_dictionary(rooms_to_students)
             H = utils.calculate_happiness(D, G)
