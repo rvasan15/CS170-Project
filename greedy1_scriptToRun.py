@@ -16,7 +16,7 @@ def greedy1_script():
 
         maxHapp = float("-inf")
         for _ in range(1, 101):
-            rooms_to_students = solver.greedy_solve_2(G, s)
+            rooms_to_students = solver.greedy_solve_1(G, s)
             D = utils.convert_dictionary(rooms_to_students)
             H = utils.calculate_happiness(D, G)
             if H > maxHapp:
