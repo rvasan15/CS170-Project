@@ -18,6 +18,7 @@ public class pritDP {
         n = 50;
         parse(args[0]);
         outputPath = args[1];
+        Room.totalRooms = 0;
 
         // Storing happiness and stress values for all possible rooms
         totalHappiness = new float[1 << n];

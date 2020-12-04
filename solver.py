@@ -1,10 +1,16 @@
 import networkx as nx
 from parse import read_input_file, write_output_file
-from utils import is_valid_solution, calculate_happiness
+import utils
 import random, sys, math
 import os
-import pritDP.java
+from utils import is_valid_solution, calculate_happiness
+import sys
+from os.path import basename, normpath
+import glob
+#import pritDP.java
 
+
+"""
 def create_outputs(input_path_dir, output_path_dir, username):
 
     input_directory = os.fsencode(input_path_dir)
@@ -18,6 +24,7 @@ def create_outputs(input_path_dir, output_path_dir, username):
              continue
          else:
              continue
+"""
 
 
 
@@ -220,6 +227,9 @@ def gamble_solve(G, s, num_open_rooms, reps=100, limit = -1):
     Works specifically for input #1 type
      - can be modified by changin num_open_rooms to randint
      - can be modified adding checks before h > best_h to check stress_max val per room
+    ToDo:
+     - Refactor to use methods in utils.py
+     - Make sure truly gamble solution
     """
 
     students = list(G.nodes)
@@ -228,8 +238,8 @@ def gamble_solve(G, s, num_open_rooms, reps=100, limit = -1):
     best_rooms = []
 
 
-
-    for _ in range(reps):
+    count = 0
+    while (count < reps):
         rooms = []
         for _ in range(num_open_rooms):
             rooms.append([])
@@ -239,21 +249,23 @@ def gamble_solve(G, s, num_open_rooms, reps=100, limit = -1):
 
         rooms = random_assign(temp_students, rooms, limit)
 
-        h = 0
-        s_room = 0
-        for room in rooms:
+        temp_d = utils.convert_list_to_dictionary(rooms)
+        dict = utils.convert_dictionary(temp_d)
 
-            temp_h, temp_s = happy_and_stress_of_student_subset(G, room)
-            h += temp_h
-            s_room = max(temp_s, s_room)
-        if ((s_room <= s/len(rooms)) and (h > best_h)):
+        valid = utils.is_valid_solution(dict, G, s, num_open_rooms)
+
+        h = utils.calculate_happiness(dict, G)
+
+        if ((valid) and (h > best_h)):
             best_rooms = []
             room_temp = rooms.copy()
             for i in range(len(rooms)):
                 best_rooms += [rooms[i].copy()]
             best_h = h
-
-        return best_rooms.copy(), best_h
+        elif (not valid):
+            count = count - 1
+        count = count + 1
+    return best_rooms.copy(), best_h
 
 
 
@@ -281,16 +293,27 @@ def random_assign(students, rooms, limit_per_room = -1):
 
 
 
-def gamble_solve_runner(G, s, num_open_rooms, reps=10, reps_to_run=100, limit = -1):
+def gamble_solve_runner(G, s, num_open_rooms = -1, reps=3, reps_to_run=100, limit = -1):
     best_room = []
     h = -1
-    for _ in range(reps_to_run):
-        room, hap = gamble_solve(G, s, num_open_rooms, reps, limit=limit)
-        if (hap > h):
-            best_room = []
-            for i in range(len(room)):
-                best_room += [room[i].copy()]
-            h = hap
+    if (num_open_rooms <= 0):
+        for _ in range(reps_to_run):
+            for i in range(1, len(list(G.nodes))+1):
+                room, hap = gamble_solve(G, s, i, reps, limit=limit)
+                print(room)
+                if (hap > h):
+                    best_room = []
+                    for i in range(len(room)):
+                        best_room += [room[i].copy()]
+                    h = hap
+    else:
+        for _ in range(reps_to_run):
+            room, hap = gamble_solve(G, s, num_open_rooms, reps, limit=limit)
+            if (hap > h):
+                best_room = []
+                for i in range(len(room)):
+                    best_room += [room[i].copy()]
+                h = hap
     return best_room, h
 
 
@@ -325,6 +348,295 @@ def solve_input_five(G, s):
 
 
 
+def greedy_solve_1(G, s):
+    """
+    Probably open 1 room, add as many possible students w/o exceeding stress level, then
+    if s_level exceeded, remove all students, open 2 rooms, repeat
+     - Remember to sort students (or sort edgelist or somt) and break ties by happiness
+
+    Helpful utils:
+        utils.is_valid_solution(D, G, s, rooms)
+        utils.convert_dictionary(room_to_student)
+        utils.calculate_stress_for_room(arr, G)
+        utils.calculate_happiness_for_room(arr, G)
+    """
+    #Iterate by opening 1 breakout room at a time, up to n breakout rooms
+    room_to_students_to_return = {}
+    max_happy = -1
+    for i in range(1, len(list(G.nodes)) + 1):
+
+        room_to_students = {}
+        for j in range(i):
+            room_to_students[j] = []
+
+        #print("room_to_students: ", room_to_students)
+        #Make copy of graph (so we can use actual graph later on as reference)
+        G_copy = nx.Graph(G)
+
+        #Create edgeList pairs of students sorted by stress/happiness
+        stress_edgeList = sorted(G_copy.edges, key=lambda x: G_copy.edges[x]["stress"], reverse = True)
+        happy_edgeList = sorted(G_copy.edges, key=lambda x: G_copy.edges[x]["happiness"], reverse = True)
+
+        #dictionary of happiness values to list of all students that have same happiness value
+        happy_dict = {}
+        for edge in happy_edgeList:
+            #print("edge: ", edge)
+            #print("happiness: ", G_copy.edges[edge]["happiness"])
+            if G_copy.edges[edge]["happiness"] in happy_dict:
+                happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+            else:
+                happy_dict[G_copy.edges[edge]["happiness"]] = []
+                happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+
+        assigned_students = []
+        #Assign students until all pairings are broken or assigned (i.e. all students in rooms)
+        while (len(assigned_students) < len(list(G.nodes))):
+
+
+            #Take happiest pair and try to assign them to rooms to maximize happiness
+            #print(happy_dict)
+            student_pair = None
+
+            """
+            for key in sorted(happy_dict.keys()):
+                #print("key: ", key)
+                #print("happy_dict[key]: ", happy_dict[key])
+                if (len(happy_dict[key]) > 0):
+
+                    student_pair = random.sample(happy_dict[key], 1)
+                    #print(student_pair[0])
+                    happy_dict[key].remove(student_pair[0])
+
+            #student_pair = happy_edgeList.pop(0)
+
+
+            if (not student_pair):
+                print("here")
+                for key in sorted(happy_dict.keys()):
+                    print("key: ", key)
+                    if (len(happy_dict[key]) > 0):
+
+                        print("happy_dict[key]: ", happy_dict[key])
+
+                break
+
+            student_pair = student_pair[0]
+            """
+
+            student_pair = happy_edgeList.pop(random.randint(0, 4))
+            #print("num assigend students: ", len(assigned_students))
+            #print("student_pair: ", student_pair)
+            #print("happy val: ", G_copy.edges[student_pair]["happiness"])
+            student0 = student_pair[0]
+            student1 = student_pair[1]
+
+
+            #Check if students have been assigned
+            student0_assigned = (student0 in assigned_students)
+            student1_assigned = (student1 in assigned_students)
+            #If students are already assigned (whether in same or diff room), go to next happiest pair
+            if (student0_assigned and student1_assigned):
+                #print("here0")
+                continue
+
+
+
+
+
+            #Check which room the students are in, if they have already been asigned to a room
+            room_of_student0 = -1
+            room_of_student1 = -1
+            for room in room_to_students:
+                if student0 in room_to_students[room]:
+                    room_of_student0 = room
+                if student1 in room_to_students[room]:
+                    room_of_student1 = room
+
+            #If student0 assigned, try to put student1 in same room, else put in room that causes least stress
+            if (student0_assigned):
+                #print("here1")
+                room_to_students[room_of_student0] += [student1]
+                assigned_students += [student1]
+                valid0 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                if (valid0):
+                    continue
+
+                #Can't put student1 in same room, so try to put in diff room
+                room_to_students[room_of_student0].remove(student1)
+                assigned_students.remove(student1)
+
+                min_stress1 = float('inf')
+                min_room1 = -1
+                for room in room_to_students:
+                    room_to_students[room] += [student1]
+
+                    #check if adding students to this room causes minimum stress (disruption?)
+                    temp_stress1 = utils.calculate_stress_for_room(room_to_students[room], G)
+                    #check if solution is valid when adding students to this room
+                    valid1 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                    if (temp_stress1 < min_stress1 and valid1):
+                        min_stress1 = temp_stress1
+                        min_room1 = room
+
+                    room_to_students[room].remove(student1)
+
+                if (min_room1 >= 0):
+                    room_to_students[min_room1] += [student1]
+                    assigned_students += [student1]
+                else:
+                # at this point, student1 cant be assigned to any room without causing excess stress,
+                # so this solution/number of breakout rooms cannot work, so try opening more rooms
+                    #print("I got here2, assigned_students = ", assigned_students)
+                    break
+                    #continue
+
+            #If student1 assigned, try to put student0 in same room, else put in room that causes least stress
+            if (student1_assigned):
+                #print("here2")
+                room_to_students[room_of_student1] += [student0]
+                assigned_students += [student0]
+                valid1 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                if (valid1):
+                    continue
+
+                #Can't put student1 in same room, so try to put in diff room
+                room_to_students[room_of_student1].remove(student0)
+                assigned_students.remove(student0)
+
+                min_stress0 = float('inf')
+                min_room0 = -1
+                for room in room_to_students:
+                    room_to_students[room] += [student0]
+
+                    #check if adding students to this room causes minimum stress (disruption?)
+                    temp_stress0 = utils.calculate_stress_for_room(room_to_students[room], G)
+                    #check if solution is valid when adding students to this room
+                    valid0 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                    if (temp_stress0 < min_stress0 and valid0):
+                        min_stress0 = temp_stress0
+                        min_room0 = room
+
+                    room_to_students[room].remove(student0)
+
+                if (min_room0 >= 0):
+                    room_to_students[min_room0] += [student0]
+                    assigned_students += [student0]
+                else:
+                # at this point, student1 cant be assigned to any room without causing excess stress,
+                # so this solution/number of breakout rooms cannot work, so try opening more rooms
+                    #print("I got here4, assigned_students = ", assigned_students)
+                    break
+                    #continue
+
+
+            if (not student1_assigned and not student0_assigned):
+                #print("here5")
+
+                #If neither student assigned, put both into the breakout room that creates least stress
+                #If putting them into a breakout room together always creates invalid solution, consider putting them into seperate rooms
+                min_stress = float('inf')
+                min_room = -1
+                for room in room_to_students:
+                    room_to_students[room] += [student0]
+                    room_to_students[room] += [student1]
+
+                    #check if adding students to this room causes minimum stress (disruption?)
+                    temp_stress = utils.calculate_stress_for_room(room_to_students[room], G)
+                    #check if solution is valid when adding students to this room
+                    valid = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                    if (temp_stress < min_stress and valid):
+                        min_stress = temp_stress
+                        min_room = room
+
+                    room_to_students[room].remove(student0)
+                    room_to_students[room].remove(student1)
+
+                if (min_room >= 0):
+                    room_to_students[min_room] += [student0]
+                    room_to_students[min_room] += [student1]
+                    assigned_students += [student0]
+                    assigned_students += [student1]
+                    continue
+
+                #if putting students together in breakout room still causes excess stress, put them in diff rooms
+                min_stress0 = float('inf')
+                min_room0 = -1
+
+                for room in room_to_students:
+                    room_to_students[room] += [student0]
+
+                    #check if adding students to this room causes minimum stress (disruption?)
+                    temp_stress0 = utils.calculate_stress_for_room(room_to_students[room], G)
+                    #check if solution is valid when adding students to this room
+                    valid0 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                    if (temp_stress0 < min_stress0 and valid0):
+                        min_stress0 = temp_stress0
+                        min_room0 = room
+
+                    room_to_students[room].remove(student0)
+
+
+
+                min_stress1 = float('inf')
+                min_room1 = -1
+
+                for room in room_to_students:
+                    room_to_students[room] += [student1]
+
+                    #check if adding students to this room causes minimum stress (disruption?)
+                    temp_stress1 = utils.calculate_stress_for_room(room_to_students[room], G)
+                    #check if solution is valid when adding students to this room
+                    valid1 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                    if (temp_stress1 < min_stress1 and valid1):
+                        min_stress1 = temp_stress1
+                        min_room1 = room
+
+                    room_to_students[room].remove(student1)
+
+                if (min_room1 >= 0):
+                    room_to_students[min_room1] += [student1]
+                    assigned_students += [student1]
+                if (min_room0 >= 0):
+                    room_to_students[min_room0] += [student0]
+                    assigned_students += [student0]
+                else:
+                # at this point, student0 cant be assigned to any room without causing excess stress,
+                # so this solution/number of breakout rooms cannot work, so try opening more rooms
+                    #print("I got here, assigned_students = ", assigned_students)
+                    break
+                    #continue
+
+
+
+
+
+
+
+
+
+
+
+
+
+        #print("here3")
+
+        valid_sol = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+        happy = utils.calculate_happiness(utils.convert_dictionary(room_to_students), G)
+        if (len(assigned_students) < len(list(G.nodes))):
+            #print(room_to_students)
+            happy = float('-inf')
+
+        #print("room_to_students: ", room_to_students)
+        print("happy for ", i, " rooms: ", happy)
+
+        if (happy > max_happy and valid_sol):
+            max_happy = happy
+            room_to_students_to_return = {}
+            for room in room_to_students:
+                room_to_students_to_return[room] = room_to_students[room].copy()
+
+    #print("here4")
+    return room_to_students_to_return
 
 
 
@@ -342,18 +654,365 @@ def solve_input_five(G, s):
 
 
 
+def greedy_solve_2(G, s):
+    """
+    Probably open 1 room, add as many possible students w/o exceeding stress level, then
+    if s_level exceeded, remove students that cause most stress, open 2 room, repeat
+     - Remember to sort students (or sort edgelist or somt) and break ties by happiness
+     - Will probably need algo to determine which student causes most stress in given room
+    Helpful Utils:
+     - utils.calculate_stress_for_room(arr, G)
+    """
+    #Iterate by opening 1 breakout room at a time, up to n breakout rooms
+    room_to_students_to_return = {}
+    max_happy = -1
+    for i in range(1, len(list(G.nodes)) + 1):
+
+        room_to_students = {}
+        for j in range(i):
+            room_to_students[j] = []
+
+        #print("room_to_students: ", room_to_students)
+        #Make copy of graph (so we can use actual graph later on as reference)
+        G_copy = nx.Graph(G)
+
+        #Create edgeList pairs of students sorted by stress/happiness
+        stress_edgeList = sorted(G_copy.edges, key=lambda x: G_copy.edges[x]["stress"], reverse = True)
+        happy_edgeList = sorted(G_copy.edges, key=lambda x: G_copy.edges[x]["happiness"], reverse = True)
+
+        #dictionary of happiness values to list of all students that have same happiness value
+        happy_dict = {}
+        for edge in happy_edgeList:
+            #print("edge: ", edge)
+            #print("happiness: ", G_copy.edges[edge]["happiness"])
+            if G_copy.edges[edge]["happiness"] in happy_dict:
+                happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+            else:
+                happy_dict[G_copy.edges[edge]["happiness"]] = []
+                happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+
+        assigned_students = []
+        #Assign students until all pairings are broken or assigned (i.e. all students in rooms)
+        while (len(assigned_students) < len(list(G.nodes))):
+
+
+            #Take happiest pair and try to assign them to rooms to maximize happiness
+            #print(happy_dict)
+            student_pair = None
+            for key in sorted(happy_dict.keys()):
+                #print("key: ", key)
+                #print("happy_dict[key]: ", happy_dict[key])
+                if (len(happy_dict[key]) > 0):
+
+                    student_pair = random.sample(happy_dict[key], 1)
+                    #print(student_pair[0])
+                    happy_dict[key].remove(student_pair[0])
+
+            #student_pair = happy_edgeList.pop(0)
+
+
+            if (not student_pair):
+                #print("here")
+                #for key in sorted(happy_dict.keys()):
+                    #print("key: ", key)
+                    #if (len(happy_dict[key]) > 0):
+
+                        #print("happy_dict[key]: ", happy_dict[key])
+
+                break
+
+            student_pair = student_pair[0]
+            #print("num assigend students: ", len(assigned_students))
+            #print("student_pair: ", student_pair)
+            #print("happy val: ", G_copy.edges[student_pair]["happiness"])
+            student0 = student_pair[0]
+            student1 = student_pair[1]
+
+
+            #Check if students have been assigned
+            student0_assigned = (student0 in assigned_students)
+            student1_assigned = (student1 in assigned_students)
+            #If students are already assigned (whether in same or diff room), go to next happiest pair
+            if (student0_assigned and student1_assigned):
+                #print("here0")
+                continue
 
 
 
-def make_output_from_list(lst, path):
-    dict = {}
-    for i in range(len(lst)):
-        for item in lst[i]:
-            dict[item] = i
-    dict2 = {}
-    for i in sorted(dict.keys()):
-        dict2[i] = dict[i]
-    write_output_file(dict2, path)
+
+
+            #Check which room the students are in, if they have already been asigned to a room
+            room_of_student0 = -1
+            room_of_student1 = -1
+            for room in room_to_students:
+                if student0 in room_to_students[room]:
+                    room_of_student0 = room
+                if student1 in room_to_students[room]:
+                    room_of_student1 = room
+
+            #If student0 assigned, try to put student1 in same room, else put in room that causes least stress
+            if (student0_assigned):
+                #print("here1")
+                #print("room_of_student0: ", room_of_student0)
+                room_to_students[room_of_student0] += [student1]
+
+                assigned_students += [student1]
+                valid0 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                if (valid0):
+                    continue
+
+                #Can't put student1 in same room, so try to put in diff room
+                room_to_students[room_of_student0].remove(student1)
+                assigned_students.remove(student1)
+
+                min_stress1 = float('inf')
+                min_room1 = -1
+                for room in room_to_students:
+                    room_to_students[room] += [student1]
+
+                    #check if adding students to this room causes minimum stress (disruption?)
+                    temp_stress1 = utils.calculate_stress_for_room(room_to_students[room], G)
+                    #check if solution is valid when adding students to this room
+                    valid1 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                    if (temp_stress1 < min_stress1 and valid1):
+                        min_stress1 = temp_stress1
+                        min_room1 = room
+
+                    room_to_students[room].remove(student1)
+
+                if (min_room1 >= 0):
+                    room_to_students[min_room1] += [student1]
+                    assigned_students += [student1]
+                else:
+                # at this point, student1 cant be assigned to any room without causing excess stress,
+                # so this solution/number of breakout rooms cannot work, so try opening more rooms
+                    #print("I got here2, assigned_students = ", assigned_students)
+                    #break
+                    remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students)
+                    continue
+
+            #If student1 assigned, try to put student0 in same room, else put in room that causes least stress
+            if (student1_assigned):
+                #print("here2")
+                #print("room_of_student1: ", room_of_student1)
+                room_to_students[room_of_student1] += [student0]
+                assigned_students += [student0]
+                valid1 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                if (valid1):
+                    continue
+
+                #Can't put student1 in same room, so try to put in diff room
+                room_to_students[room_of_student1].remove(student0)
+                assigned_students.remove(student0)
+
+                min_stress0 = float('inf')
+                min_room0 = -1
+                for room in room_to_students:
+                    room_to_students[room] += [student0]
+
+                    #check if adding students to this room causes minimum stress (disruption?)
+                    temp_stress0 = utils.calculate_stress_for_room(room_to_students[room], G)
+                    #check if solution is valid when adding students to this room
+                    valid0 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                    if (temp_stress0 < min_stress0 and valid0):
+                        min_stress0 = temp_stress0
+                        min_room0 = room
+
+                    room_to_students[room].remove(student0)
+
+                if (min_room0 >= 0):
+                    room_to_students[min_room0] += [student0]
+                    assigned_students += [student0]
+                else:
+                # at this point, student1 cant be assigned to any room without causing excess stress,
+                # so this solution/number of breakout rooms cannot work, so try opening more rooms
+                    #print("I got here4, assigned_students = ", assigned_students)
+                    #break
+                    remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students)
+                    continue
+
+
+            if (not student1_assigned and not student0_assigned):
+                #print("here5")
+
+                #If neither student assigned, put both into the breakout room that creates least stress
+                #If putting them into a breakout room together always creates invalid solution, consider putting them into seperate rooms
+                min_stress = float('inf')
+                min_room = -1
+                for room in room_to_students:
+                    room_to_students[room] += [student0]
+                    room_to_students[room] += [student1]
+
+                    #check if adding students to this room causes minimum stress (disruption?)
+                    temp_stress = utils.calculate_stress_for_room(room_to_students[room], G)
+                    #check if solution is valid when adding students to this room
+                    valid = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                    if (temp_stress < min_stress and valid):
+                        min_stress = temp_stress
+                        min_room = room
+
+                    room_to_students[room].remove(student0)
+                    room_to_students[room].remove(student1)
+
+                if (min_room >= 0):
+                    room_to_students[min_room] += [student0]
+                    room_to_students[min_room] += [student1]
+                    assigned_students += [student0]
+                    assigned_students += [student1]
+                    continue
+
+                #if putting students together in breakout room still causes excess stress, put them in diff rooms
+                min_stress0 = float('inf')
+                min_room0 = -1
+
+                for room in room_to_students:
+                    room_to_students[room] += [student0]
+
+                    #check if adding students to this room causes minimum stress (disruption?)
+                    temp_stress0 = utils.calculate_stress_for_room(room_to_students[room], G)
+                    #check if solution is valid when adding students to this room
+                    valid0 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                    if (temp_stress0 < min_stress0 and valid0):
+                        min_stress0 = temp_stress0
+                        min_room0 = room
+
+                    room_to_students[room].remove(student0)
+
+
+
+                min_stress1 = float('inf')
+                min_room1 = -1
+
+                for room in room_to_students:
+                    room_to_students[room] += [student1]
+
+                    #check if adding students to this room causes minimum stress (disruption?)
+                    temp_stress1 = utils.calculate_stress_for_room(room_to_students[room], G)
+                    #check if solution is valid when adding students to this room
+                    valid1 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+                    if (temp_stress1 < min_stress1 and valid1):
+                        min_stress1 = temp_stress1
+                        min_room1 = room
+
+                    room_to_students[room].remove(student1)
+
+                if (min_room1 >= 0):
+                    room_to_students[min_room1] += [student1]
+                    assigned_students += [student1]
+                if (min_room0 >= 0):
+                    room_to_students[min_room0] += [student0]
+                    assigned_students += [student0]
+                else:
+                    #continue
+                # at this point, student0 cant be assigned to any room without causing excess stress,
+                # so this solution/number of breakout rooms cannot work, so remove students
+                # that cause stress level to exceed room stress level, put them back into
+                # happiness edgelist and dictionary, and then continue from there
+
+
+
+                    remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students)
+
+                    #print("I got here, assigned_students = ", assigned_students)
+                    #break
+                    continue
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        #print("here3")
+
+        valid_sol = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+        happy = utils.calculate_happiness(utils.convert_dictionary(room_to_students), G)
+        if (len(assigned_students) < len(list(G.nodes))):
+            print(room_to_students)
+            happy = float('-inf')
+
+        #print("room_to_students: ", room_to_students)
+        print("happy for ", i, " rooms: ", happy)
+
+        if (happy > max_happy and valid_sol):
+            max_happy = happy
+            room_to_students_to_return = {}
+            for room in room_to_students:
+                room_to_students_to_return[room] = room_to_students[room].copy()
+
+    #print("here4")
+    return room_to_students_to_return
+
+
+
+
+
+
+def remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students):
+    # Check which rooms exceed stress limit
+    room_numbers_that_exceed_stress = []
+    for room in room_to_students:
+        s_room = utils.calculate_stress_for_room(room_to_students[room], G)
+        if (s_room >= (s/(len(room_to_students)))): #ToDo: should this be i or i+1? Think of 50 room case
+            room_numbers_that_exceed_stress += [room]
+
+    # From the rooms that exceed stress limit, remove students until all stress limit not exceeded
+    removed_students = []
+    for room in room_numbers_that_exceed_stress:
+        s_room = utils.calculate_stress_for_room(room_to_students[room], G)
+        while (s_room >= (s/(len(room_to_students)))):
+            min_stress = float("inf")
+            student_to_remove = -1
+            for i in range(len(room_to_students[room])):
+
+                student = room_to_students[room].pop(i)
+                if (utils.calculate_stress_for_room(room_to_students[room], G) < min_stress):
+                    min_stress = utils.calculate_stress_for_room(room_to_students[room], G)
+                    student_to_remove = student
+                room_to_students[room].insert(i, student)
+
+            room_to_students[room].remove(student_to_remove)
+            removed_students += [student_to_remove]
+            s_room = utils.calculate_stress_for_room(room_to_students[room], G)
+
+    for i in range(len(removed_students)-1):
+        for j in range(i, len(removed_students)):
+            edge = (removed_students[i], removed_students[j])
+            if (edge[0] == edge[1]):
+                continue
+            print(edge)
+            if G_copy.edges[edge]["happiness"] in happy_dict:
+                happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+            else:
+                happy_dict[G_copy.edges[edge]["happiness"]] = []
+                happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+
+    for student in removed_students:
+        assigned_students.remove(student)
+
+
+    #open another room
+    #room_to_students[len(room_to_students)] = []
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -403,8 +1062,6 @@ def solve(G, s):
         D: Dictionary mapping for student to breakout room r e.g. {0:2, 1:0, 2:1, 3:2}
         k: Number of breakout rooms
     """
-
-    # TODO: your code here!
     pass
 
     # Idea (Deepak): Something like a greedy solution, where we start by opening n/2 breakout rooms
@@ -477,16 +1134,16 @@ def solve(G, s):
 #     D, k = solve(G, s)
 #     assert is_valid_solution(D, G, s, k)
 #     print("Total Happiness: {}".format(calculate_happiness(D, G)))
-#     write_output_file(D, 'out/test.out')
+#     write_output_file(D, 'outputs/small-1.out')
 
 
 # For testing a folder of inputs to create a folder of outputs, you can use glob (need to import it)
 # if __name__ == '__main__':
-#     inputs = glob.glob('file_path/inputs/*')
+#     inputs = glob.glob('inputs/*')
 #     for input_path in inputs:
-#         output_path = 'file_path/outputs/' + basename(normpath(input_path))[:-3] + '.out'
-#         G, s = read_input_file(input_path, 100)
+#         output_path = 'outputs/' + basename(normpath(input_path))[:-3] + '.out'
+#         G, s = read_input_file(input_path)
 #         D, k = solve(G, s)
 #         assert is_valid_solution(D, G, s, k)
-#         cost_t = calculate_happiness(T)
+#         happiness = calculate_happiness(D, G)
 #         write_output_file(D, output_path)
