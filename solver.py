@@ -951,6 +951,8 @@ def greedy_solve_2(G, s):
             room_to_students_to_return = {}
             for room in room_to_students:
                 room_to_students_to_return[room] = room_to_students[room].copy()
+        else:
+            remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students)
 
     #print("here4")
     print("happy for ", len(room_to_students), " rooms: ", max_happy)
