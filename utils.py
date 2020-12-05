@@ -115,7 +115,7 @@ def make_output_from_dict(rooms_to_students, path, G, s):
     D = parse.read_output_file(path, G, s)
     happy2 = calculate_happiness(D, G)
     print("current happiness of this file: ", happy2)
-    assert(happy1 == happy2)
+    assert(max(happy1, happy0) == happy2)
 
 
 def calculate_stress_for_room(arr, G):
