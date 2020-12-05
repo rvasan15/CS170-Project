@@ -104,17 +104,30 @@ def make_output_from_dict(rooms_to_students, path, G, s):
         path: filepath to output file to write dictionary output
     """
     dct = convert_dictionary(rooms_to_students)
-    din = parse.read_output_file(path, G, s)
+
+    try:
+        din = parse.read_output_file(path, G, s)
+    except FileNotFoundError:
+        if (is_valid_solution(dct, G, s, len(rooms_to_students))):
+            parse.write_output_file(dct, path)
+        return
+
+
+
+
     happy0 = calculate_happiness(din, G)
     happy1 = calculate_happiness(dct, G)
     print("happiness of previous configuration: ", happy0)
     print("happiness of this configuration: ", happy1)
+
     if ((happy1 > happy0) and (is_valid_solution(dct, G, s, len(rooms_to_students)))):
         print("Valid")
         parse.write_output_file(dct, path)
+
     D = parse.read_output_file(path, G, s)
     happy2 = calculate_happiness(D, G)
     print("current happiness of this file: ", happy2)
+
     assert(max(happy1, happy0) == happy2)
 
 
