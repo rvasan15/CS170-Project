@@ -1,4 +1,6 @@
 import networkx as nx
+import parse
+#from parse import write_output_file
 
 def is_valid_solution(D, G, s, rooms):
     """
@@ -92,6 +94,29 @@ def make_output_from_list(lst, path):
     for i in sorted(dict.keys()):
         dict2[i] = dict[i]
     write_output_file(dict2, path)
+
+def make_output_from_dict(rooms_to_students, path, G, s):
+    """
+    Converts the dictionary of rooms to students to a valid return of the solver and writes to
+    output file
+    Args:
+        rooms_to_students: Dictionary of room to a list of students
+        path: filepath to output file to write dictionary output
+    """
+    dct = convert_dictionary(rooms_to_students)
+    din = parse.read_output_file(path, G, s)
+    happy0 = calculate_happiness(din, G)
+    happy1 = calculate_happiness(dct, G)
+    print("happiness of previous configuration: ", happy0)
+    print("happiness of this configuration: ", happy1)
+    if ((happy1 > happy0) and (is_valid_solution(dct, G, s, len(rooms_to_students)))):
+        print("Valid")
+        parse.write_output_file(dct, path)
+    D = parse.read_output_file(path, G, s)
+    happy2 = calculate_happiness(D, G)
+    print("current happiness of this file: ", happy2)
+    assert(happy1 == happy2)
+
 
 def calculate_stress_for_room(arr, G):
     """
