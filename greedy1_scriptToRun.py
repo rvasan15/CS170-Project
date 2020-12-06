@@ -25,7 +25,7 @@ def greedy1_script():
         print(maxHapp)
 
 def greedy_solve_2_script():
-    files_to_skip = [12, 17, 56, 135]
+    files_to_skip = [7, 10, 11, 12, 17, 29, 31, 33, 51, 54, 56, 65, 71, 72, 73, 76, 77, 78, 110, 112, 121, 123, 125, 129, 131, 134, 135, 138, 151, 165, 169, 173, 174, 178, 187, 194, 199, 201, 202, 203, 208, 213, 215, 218, 219, 224, 231, 233, 235]
     files_to_run = [131, 193, 105, 236, 115, 183, 170, 197, 206, 174, 125, 222,
                     207, 175, 141, 130, 192, 11, 4, 15, 45, 14, 20, 34, 209,
                     24, 41, 109, 46, 128, 7, 118, 204, 137, 39, 185, 112, 200,
@@ -34,7 +34,7 @@ def greedy_solve_2_script():
         print("======================================")
         print("Determining happiness for file ", i, "...")
         print("======================================")
-        if ((i in files_to_skip) or (i not in files_to_run)):
+        if (i in files_to_skip):
             continue
         try:
             G, s = parse.read_input_file("inputs/large-" + str(i) + ".in")
