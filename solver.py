@@ -666,19 +666,37 @@ def greedy_solve_2(G, s):
     #Iterate by opening 1 breakout room at a time, up to n breakout rooms
     room_to_students_to_return = {}
     max_happy = -1
-    for i in range(1, len(list(G.nodes)) + 1):
+    assigned_students = []
+    i = 1
+    room_to_students = {}
+    for j in range(i):
+        room_to_students[j] = []
 
-        room_to_students = {}
-        for j in range(i):
-            room_to_students[j] = []
+    #print("room_to_students: ", room_to_students)
+    #Make copy of graph (so we can use actual graph later on as reference)
+    G_copy = nx.Graph(G)
 
-        #print("room_to_students: ", room_to_students)
-        #Make copy of graph (so we can use actual graph later on as reference)
-        G_copy = nx.Graph(G)
+    #Create edgeList pairs of students sorted by stress/happiness
+    stress_edgeList = sorted(G_copy.edges, key=lambda x: G_copy.edges[x]["stress"], reverse = True)
+    happy_edgeList = sorted(G_copy.edges, key=lambda x: G_copy.edges[x]["happiness"], reverse = True)
+    #Todo: Maybe sort/solve based on some values/prioerities i.e. 2 * happy - 3 * stress
 
-        #Create edgeList pairs of students sorted by stress/happiness
-        stress_edgeList = sorted(G_copy.edges, key=lambda x: G_copy.edges[x]["stress"], reverse = True)
-        happy_edgeList = sorted(G_copy.edges, key=lambda x: G_copy.edges[x]["happiness"], reverse = True)
+
+    #dictionary of happiness values to list of all students that have same happiness value
+    happy_dict = {}
+    for edge in happy_edgeList:
+        #print("edge: ", edge)
+        #print("happiness: ", G_copy.edges[edge]["happiness"])
+        if G_copy.edges[edge]["happiness"] in happy_dict:
+            happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+        else:
+            happy_dict[G_copy.edges[edge]["happiness"]] = []
+            happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+
+    while (len(assigned_students) < len(list(G.nodes))):
+
+        stress_edgeList = sorted(stress_edgeList, key=lambda x: G_copy.edges[x]["stress"], reverse = True)
+        happy_edgeList = sorted(happy_edgeList, key=lambda x: G_copy.edges[x]["happiness"], reverse = True)
 
         #dictionary of happiness values to list of all students that have same happiness value
         happy_dict = {}
@@ -691,7 +709,8 @@ def greedy_solve_2(G, s):
                 happy_dict[G_copy.edges[edge]["happiness"]] = []
                 happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
 
-        assigned_students = []
+
+
         #Assign students until all pairings are broken or assigned (i.e. all students in rooms)
         while (len(assigned_students) < len(list(G.nodes))):
 
@@ -699,6 +718,7 @@ def greedy_solve_2(G, s):
             #Take happiest pair and try to assign them to rooms to maximize happiness
             #print(happy_dict)
             student_pair = None
+            """
             for key in sorted(happy_dict.keys()):
                 #print("key: ", key)
                 #print("happy_dict[key]: ", happy_dict[key])
@@ -710,9 +730,9 @@ def greedy_solve_2(G, s):
 
             #student_pair = happy_edgeList.pop(0)
 
-
+            # No more student pairs – shouldn't really hit this point tho??
             if (not student_pair):
-                #print("here")
+                print("here")
                 #for key in sorted(happy_dict.keys()):
                     #print("key: ", key)
                     #if (len(happy_dict[key]) > 0):
@@ -722,6 +742,15 @@ def greedy_solve_2(G, s):
                 break
 
             student_pair = student_pair[0]
+            """
+            #Todo: Does this always pick happiest?
+            pop_amt = min(len(happy_edgeList), 5)
+            if (pop_amt <= 0):
+                break
+            #print("assigned_students: ", assigned_students)
+            #print("room_to_students: ", room_to_students)
+            #print("happy_edgeList: ", happy_edgeList)
+            student_pair = happy_edgeList.pop(random.randint(0, pop_amt-1)) # ToDo: Maybe increase this value to 5 - 10?
             #print("num assigend students: ", len(assigned_students))
             #print("student_pair: ", student_pair)
             #print("happy val: ", G_copy.edges[student_pair]["happiness"])
@@ -788,7 +817,7 @@ def greedy_solve_2(G, s):
                 # so this solution/number of breakout rooms cannot work, so try opening more rooms
                     #print("I got here2, assigned_students = ", assigned_students)
                     #break
-                    remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students)
+                    happy_edgeList = remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students, happy_edgeList)
                     continue
 
             #If student1 assigned, try to put student0 in same room, else put in room that causes least stress
@@ -828,7 +857,7 @@ def greedy_solve_2(G, s):
                 # so this solution/number of breakout rooms cannot work, so try opening more rooms
                     #print("I got here4, assigned_students = ", assigned_students)
                     #break
-                    remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students)
+                    happy_edgeList = remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students, happy_edgeList)
                     continue
 
 
@@ -911,7 +940,7 @@ def greedy_solve_2(G, s):
 
 
 
-                    remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students)
+                    happy_edgeList = remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students, happy_edgeList)
 
                     #print("I got here, assigned_students = ", assigned_students)
                     #break
@@ -932,22 +961,33 @@ def greedy_solve_2(G, s):
 
         #print("here3")
 
-        valid_sol = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
+        valid_sol = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, len(room_to_students))
         happy = utils.calculate_happiness(utils.convert_dictionary(room_to_students), G)
         if (len(assigned_students) < len(list(G.nodes))):
-            print(room_to_students)
+            #print(room_to_students)
             happy = float('-inf')
 
         #print("room_to_students: ", room_to_students)
-        print("happy for ", i, " rooms: ", happy)
 
+        #print("room_to_students: ", room_to_students)
+        #print("happy: ", happy)
         if (happy > max_happy and valid_sol):
             max_happy = happy
             room_to_students_to_return = {}
             for room in room_to_students:
                 room_to_students_to_return[room] = room_to_students[room].copy()
+        elif (not valid_sol):
+            happy_edgeList = remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students, happy_edgeList)
+        #elif ((happy < max_happy) and (len(room_to_students) < 50)):
+            #happy_dict = remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students, happy_edgeList)
+        #else:
+            #break
+
+        if (len(happy_edgeList) <= 0):
+            break
 
     #print("here4")
+    print("happy for ", len(room_to_students), " rooms: ", max_happy)
     return room_to_students_to_return
 
 
@@ -955,51 +995,70 @@ def greedy_solve_2(G, s):
 
 
 
-def remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students):
+def remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students, happy_edgeList):
     # Check which rooms exceed stress limit
-    room_numbers_that_exceed_stress = []
-    for room in room_to_students:
-        s_room = utils.calculate_stress_for_room(room_to_students[room], G)
-        if (s_room >= (s/(len(room_to_students)))): #ToDo: should this be i or i+1? Think of 50 room case
-            room_numbers_that_exceed_stress += [room]
-
-    # From the rooms that exceed stress limit, remove students until all stress limit not exceeded
-    removed_students = []
-    for room in room_numbers_that_exceed_stress:
-        s_room = utils.calculate_stress_for_room(room_to_students[room], G)
-        while (s_room >= (s/(len(room_to_students)))):
-            min_stress = float("inf")
-            student_to_remove = -1
-            for i in range(len(room_to_students[room])):
-
-                student = room_to_students[room].pop(i)
-                if (utils.calculate_stress_for_room(room_to_students[room], G) < min_stress):
-                    min_stress = utils.calculate_stress_for_room(room_to_students[room], G)
-                    student_to_remove = student
-                room_to_students[room].insert(i, student)
-
-            room_to_students[room].remove(student_to_remove)
-            removed_students += [student_to_remove]
+    #print("in remove_students_greedy")
+    counter = 0
+    while True:
+        #print("here: ", counter)
+        room_numbers_that_exceed_stress = []
+        for room in room_to_students:
             s_room = utils.calculate_stress_for_room(room_to_students[room], G)
+            if (s_room >= (s/(len(room_to_students)))): #ToDo: should this be i or i+1? Think of 50 room case
+                room_numbers_that_exceed_stress += [room]
 
-    for i in range(len(removed_students)-1):
-        for j in range(i, len(removed_students)):
-            edge = (removed_students[i], removed_students[j])
-            if (edge[0] == edge[1]):
-                continue
-            print(edge)
-            if G_copy.edges[edge]["happiness"] in happy_dict:
-                happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
-            else:
-                happy_dict[G_copy.edges[edge]["happiness"]] = []
-                happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+        # From the rooms that exceed stress limit, remove students until all stress limit not exceeded
+        removed_students = []
+        for room in room_numbers_that_exceed_stress:
+            s_room = utils.calculate_stress_for_room(room_to_students[room], G)
+            while (s_room >= (s/(len(room_to_students)))):
+                min_stress = float("inf")
+                student_to_remove = -1
+                for i in range(len(room_to_students[room])):
 
-    for student in removed_students:
-        assigned_students.remove(student)
+                    student = room_to_students[room].pop(i)
+                    if (utils.calculate_stress_for_room(room_to_students[room], G) < min_stress):
+                        min_stress = utils.calculate_stress_for_room(room_to_students[room], G)
+                        student_to_remove = student
+                    room_to_students[room].insert(i, student)
+
+                room_to_students[room].remove(student_to_remove)
+                removed_students += [student_to_remove]
+                s_room = utils.calculate_stress_for_room(room_to_students[room], G)
+
+        for i in range(len(removed_students)-1):
+            for j in range(i+1, len(removed_students)):
+                edge = (removed_students[i], removed_students[j])
+                if (edge[0] == edge[1]):
+                    continue
+                #print(edge)
+                happy_edgeList += [edge]
+                if G_copy.edges[edge]["happiness"] in happy_dict:
+                    happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+                else:
+                    happy_dict[G_copy.edges[edge]["happiness"]] = []
+                    happy_dict[G_copy.edges[edge]["happiness"]] += [edge]
+
+        happy_edgeList = sorted(happy_edgeList, key=lambda x: G_copy.edges[x]["happiness"], reverse = True)
+
+        for student in removed_students:
+            assigned_students.remove(student)
 
 
-    #open another room
-    #room_to_students[len(room_to_students)] = []
+        #open another room
+        if (len(room_to_students) < 50):
+            room_to_students[len(room_to_students)] = []
+
+        counter += 1
+        if (utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, len(room_to_students))):
+            #print("why you always breakin")
+            #print("This is valid? wyd: ", room_to_students)
+            #print("How did you get this kinda happiness?: ", utils.calculate_happiness(utils.convert_dictionary(room_to_students), G))
+            #print("Did you assign everyone tho: ", assigned_students)
+            #print("Did you assign everyone tho pt 2: ", len(assigned_students))
+            break
+    #print("done with remove_students_greedy")
+    return happy_edgeList
 
 
 
@@ -1032,6 +1091,7 @@ room, h = solver.gamble_solve_runner(G, s, 10)
 
 solver.make_output_from_list(room, "test20.out")
 """
+
 
 
 
