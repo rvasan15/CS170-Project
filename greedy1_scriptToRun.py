@@ -11,11 +11,11 @@ import glob
 import solver
 
 def greedy1_script():
-    for i in range(1, 237):
+    for i in range(225, 243):
+        if i == 235: continue
         G, s = parse.read_input_file("inputs/large-" + str(i) + ".in")
-
         maxHapp = float("-inf")
-        for _ in range(1, 101):
+        for _ in range(1, 31):
             rooms_to_students = solver.greedy_solve_1(G, s)
             D = utils.convert_dictionary(rooms_to_students)
             H = utils.calculate_happiness(D, G)
