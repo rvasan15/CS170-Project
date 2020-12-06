@@ -107,9 +107,15 @@ def make_output_from_dict(rooms_to_students, path, G, s):
 
     try:
         din = parse.read_output_file(path, G, s)
-    except FileNotFoundError:
+    except (FileNotFoundError, AssertionError):
+        if (len(rooms_to_students) <= 0):
+            print("Empty Room Configuration")
+            return
         if (is_valid_solution(dct, G, s, len(rooms_to_students))):
             parse.write_output_file(dct, path)
+        D = parse.read_output_file(path, G, s)
+        happy2 = calculate_happiness(D, G)
+        print("current happiness of this file: ", happy2)
         return
 
 
@@ -117,8 +123,8 @@ def make_output_from_dict(rooms_to_students, path, G, s):
 
     happy0 = calculate_happiness(din, G)
     happy1 = calculate_happiness(dct, G)
-    print("happiness of previous configuration: ", happy0)
-    print("happiness of this configuration: ", happy1)
+    #print("happiness of previous configuration: ", happy0)
+    #print("happiness of this configuration: ", happy1)
 
     if ((happy1 > happy0) and (is_valid_solution(dct, G, s, len(rooms_to_students)))):
         print("Valid")
