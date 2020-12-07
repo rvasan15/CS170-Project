@@ -4,6 +4,9 @@ import java.io.*;
 
 //3 lines that u mess w/ stress max that should be < not <=
 
+//Greedy2: Think abt adding students to max happy room instead of min sad soom
+//Greedy2: Think about increasing your random selection of happy students to 10 from 5
+
 public class pritDP {
     static float[][] h, s, dp;
     static float[] totalStress, totalHappiness;

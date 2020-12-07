@@ -14,7 +14,7 @@ students that cause most stress in each room and adds them back to list of unass
 students, and continues assigning students. Assign students until all students assigned
 """
 
-
+"""STARTING A CHANGE"""
 def greedy_solve_2(G, s, assigned_students=[], room_to_students={0:[]}, happy_edgeList=[]):
     """
     Probably open 1 room, add as many possible students w/o exceeding stress level, then
@@ -151,6 +151,9 @@ def greedy_solve_2(G, s, assigned_students=[], room_to_students={0:[]}, happy_ed
                 #print("here1")
                 #print("room_of_student0: ", room_of_student0)
                 room_to_students[room_of_student0] += [student1]
+
+                #ToDo: Should we run "remove_students_greedy" before checking validity of
+                #room so that we can still create most happiness?
 
                 assigned_students += [student1]
                 valid0 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
@@ -344,6 +347,7 @@ def greedy_solve_2(G, s, assigned_students=[], room_to_students={0:[]}, happy_ed
             for room in room_to_students:
                 room_to_students_to_return[room] = room_to_students[room].copy()
         elif (not valid_sol):
+            #room_to_students[len(room_to_students)] = []
             happy_edgeList = remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students, happy_edgeList)
         #elif ((happy < max_happy) and (len(room_to_students) < 50)):
             #happy_dict = remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students, happy_edgeList)
@@ -365,6 +369,9 @@ def greedy_solve_2(G, s, assigned_students=[], room_to_students={0:[]}, happy_ed
 def remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_students, happy_edgeList):
     # Check which rooms exceed stress limit
     #print("in remove_students_greedy")
+    #open another room
+    if (len(room_to_students) < 50): # add this check when we assigned students in greedy2 by happiness and don't care abt stress
+        room_to_students[len(room_to_students)] = []
     counter = 0
     while True:
         #print("here: ", counter)
@@ -412,9 +419,7 @@ def remove_students_greedy(G, G_copy, s, room_to_students, happy_dict, assigned_
             assigned_students.remove(student)
 
 
-        #open another room
-        if (len(room_to_students) < 50):
-            room_to_students[len(room_to_students)] = []
+
 
         counter += 1
         if (utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, len(room_to_students))):

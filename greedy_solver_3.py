@@ -281,7 +281,7 @@ def greedy_solve_3(G, s):
                     room_to_students[room] += [student0]
 
                     #check if adding students to this room causes minimum stress (disruption?)
-                    temp_happy0 = utils.calculate_stress_for_room(room_to_students[room], G)
+                    temp_happy0 = utils.calculate_happiness_for_room(room_to_students[room], G)
                     #check if solution is valid when adding students to this room
                     valid0 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
                     if (temp_happy0 > max_happy0 and valid0):
@@ -299,7 +299,7 @@ def greedy_solve_3(G, s):
                     room_to_students[room] += [student1]
 
                     #check if adding students to this room causes minimum stress (disruption?)
-                    temp_happy1 = utils.calculate_stress_for_room(room_to_students[room], G)
+                    temp_happy1 = utils.calculate_happiness_for_room(room_to_students[room], G)
                     #check if solution is valid when adding students to this room
                     valid1 = utils.is_valid_solution(utils.convert_dictionary(room_to_students), G, s, i)
                     if (temp_happy1 > max_happy1 and valid1):

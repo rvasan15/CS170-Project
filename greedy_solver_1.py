@@ -90,7 +90,10 @@ def greedy_solve_1(G, s):
             student_pair = student_pair[0]
             """
 
-            student_pair = happy_edgeList.pop(random.randint(0, 4))
+            pop_amt = min(len(happy_edgeList), 10)
+            if (pop_amt <= 0):
+                break
+            student_pair = happy_edgeList.pop(random.randint(0, pop_amt-1))
             #print("num assigend students: ", len(assigned_students))
             #print("student_pair: ", student_pair)
             #print("happy val: ", G_copy.edges[student_pair]["happiness"])

@@ -25,11 +25,11 @@ def greedy1_script():
         print(maxHapp)
 
 def greedy_solve_2_script():
-    files_to_skip = [12, 17, 56, 135]
-    files_to_run = [131, 193, 105, 236, 115, 183, 170, 197, 206, 174, 125, 222,
-                    207, 175, 141, 130, 192, 11, 4, 15, 45, 14, 20, 34, 209,
-                    24, 41, 109, 46, 128, 7, 118, 204, 137, 39, 185, 112, 200,
-                    8, 107, 19, 123, 181, 132, 106, 225, 240, 231, 102, 38, 184, 112]
+    files_to_skip = [7, 10, 11, 12, 18, 29, 31, 33, 44, 51, 54, 56, 60, 65, 71, 72, 73,
+                    76, 77, 78, 81, 103, 110, 112, 121, 123, 125, 129, 131, 134, 135, 138,
+                    151, 154, 165, 169, 173, 174, 178, 184, 187, 194, 196, 199, 201, 202, 203,
+                    208, 213, 215, 218, 219, 224, 231, 233, 235]
+    files_to_run = [i+1 for i in range(242)]
     for i in range(1, 243):
         print("======================================")
         print("Determining happiness for file ", i, "...")
@@ -60,7 +60,7 @@ def greedy_solve_2_script():
 
 def greedy_solve_5_script():
     files_to_skip = [12, 17, 56, 135]
-    for i in range(1, 10):
+    for i in range(1, 243):
         print("======================================")
         print("Determining happiness for file ", i, "...")
         print("======================================")
@@ -72,7 +72,7 @@ def greedy_solve_5_script():
             continue
 
         maxHapp = float("-inf")
-        for _ in range(1, 10):
+        for _ in range(100):
             #try:
             rooms_to_students = solver.greedy_solve_5(G, s)
             path = "outputs/large-" + str(i) + ".out"
@@ -88,4 +88,4 @@ def greedy_solve_5_script():
             """
         #print(maxHapp)
 
-#greedy_solve_2_script()
+greedy_solve_2_script()
