@@ -14,6 +14,9 @@ students that cause most stress in each room and adds them back to list of unass
 students, and continues assigning students. Assign students until all students assigned
 """
 
+#ToDo: Possible sol (from prit): Generate random order for 50 students, then assign them greedily
+#ToDo: Possible sol (from prit): Pair up students by optimal happiness partner pair and then assign
+
 """STARTING A CHANGE"""
 def greedy_solve_2(G, s, assigned_students=[], room_to_students={0:[]}, happy_edgeList=[]):
     """
