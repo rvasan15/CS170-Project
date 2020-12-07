@@ -23,3 +23,69 @@ def greedy1_script():
                 maxHapp = H
                 parse.write_output_file(D, "outputs/large-" + str(i) + ".out")
         print(maxHapp)
+
+def greedy_solve_2_script():
+    files_to_skip = [7, 10, 11, 12, 17, 29, 31, 33, 51, 54, 56, 65, 71, 72, 73, 76, 77, 78, 110, 112, 121, 123, 125, 129, 131, 134, 135, 138, 151, 165, 169, 173, 174, 178, 187, 194, 199, 201, 202, 203, 208, 213, 215, 218, 219, 224, 231, 233, 235]
+    files_to_run = [131, 193, 105, 236, 115, 183, 170, 197, 206, 174, 125, 222,
+                    207, 175, 141, 130, 192, 11, 4, 15, 45, 14, 20, 34, 209,
+                    24, 41, 109, 46, 128, 7, 118, 204, 137, 39, 185, 112, 200,
+                    8, 107, 19, 123, 181, 132, 106, 225, 240, 231, 102, 38, 184, 112]
+    for i in range(1, 243):
+        print("======================================")
+        print("Determining happiness for file ", i, "...")
+        print("======================================")
+        if (i in files_to_skip):
+            continue
+        try:
+            G, s = parse.read_input_file("inputs/large-" + str(i) + ".in")
+        except (FileNotFoundError):
+            continue
+
+        maxHapp = float("-inf")
+        for _ in range(100):
+            #try:
+            rooms_to_students = solver.greedy_solve_2(G, s)
+            path = "outputs/large-" + str(i) + ".out"
+            utils.make_output_from_dict(rooms_to_students, path, G, s)
+            #except(FileNotFoundError, ValueError, AssertionError, RuntimeError):
+            #    continue
+            """
+            D = utils.convert_dictionary(rooms_to_students)
+            H = utils.calculate_happiness(D, G)
+            if H > maxHapp:
+                maxHapp = H
+                parse.write_output_file(D, "outputs/large-" + str(i) + ".out")
+            """
+        #print(maxHapp)
+
+def greedy_solve_5_script():
+    files_to_skip = [12, 17, 56, 135]
+    for i in range(1, 10):
+        print("======================================")
+        print("Determining happiness for file ", i, "...")
+        print("======================================")
+        if (i in files_to_skip):
+            continue
+        try:
+            G, s = parse.read_input_file("inputs/large-" + str(i) + ".in")
+        except (FileNotFoundError):
+            continue
+
+        maxHapp = float("-inf")
+        for _ in range(1, 10):
+            #try:
+            rooms_to_students = solver.greedy_solve_5(G, s)
+            path = "outputs/large-" + str(i) + ".out"
+            utils.make_output_from_dict(rooms_to_students, path, G, s)
+            #except(FileNotFoundError, ValueError, AssertionError, RuntimeError):
+            #    continue
+            """
+            D = utils.convert_dictionary(rooms_to_students)
+            H = utils.calculate_happiness(D, G)
+            if H > maxHapp:
+                maxHapp = H
+                parse.write_output_file(D, "outputs/large-" + str(i) + ".out")
+            """
+        #print(maxHapp)
+
+#greedy_solve_2_script()

@@ -200,7 +200,7 @@ public class pritDP {
     static void generateRooms(int mask, int rooms) {
         if (Integer.bitCount(mask) == 0) return;
         for (int i = mask; i > 0; i = (i - 1) & mask) {
-            if (dp[mask][rooms] == dp[mask ^ i][rooms - 1] + totalHappiness[i] && totalStress[i] < S_max / bestRooms) {
+            if (dp[mask][rooms] == dp[mask ^ i][rooms - 1] + totalHappiness[i] && totalStress[i] <= S_max / bestRooms) {
                 r.add(Room.createRoom(i));
                 generateRooms(mask ^ i, rooms - 1);
                 return;

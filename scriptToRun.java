@@ -5,7 +5,7 @@ import java.util.regex.Pattern;
 
 public class scriptToRun {
     public static void main(String[] args) {
-        //args should be: inputs, outputs, [name], [start_filenum_range], [end_filenum_range]
+        //args should be: inputs, outputs, [start_filenum_range], [end_filenum_range]
         File input_dir = new File(args[0]);
         File output_dir = new File(args[1]);
         int startRange = Integer.parseInt(args[2]);
