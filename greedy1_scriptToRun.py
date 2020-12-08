@@ -34,7 +34,7 @@ def greedy_solve_2_script():
         print("======================================")
         print("Determining happiness for file ", i, "...")
         print("======================================")
-        if ((i in files_to_skip) or (i not in files_to_run)):
+        if (i in files_to_skip):
             continue
         try:
             G, s = parse.read_input_file("inputs/large-" + str(i) + ".in")
